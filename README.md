@@ -1,7 +1,5 @@
 ![Gooseboard](public/gooseBoard.png)
 
-![
-
 # gooseBoard
 
 gooseBoard is a real-time collaborative canvas where everyone can draw together on a shared space, creating a dynamic and interactive experience. Built with React and Konva, it provides a smooth, user-friendly interface for seamless live drawing and collaboration.
