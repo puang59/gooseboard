@@ -67,10 +67,19 @@ export default function CanvasComponent() {
     let lineSubscription: RealtimeChannel | null = null;
     let deletionSubscription: RealtimeChannel | null = null;
 
+    // lineSubscription = subscribeToDrawings((newLine) => {
+    //   if (!lines.some((line) => line.id === newLine.id)) {
+    //     setLines((prevLines) => [...prevLines, newLine]);
+    //   }
+    // });
+
     lineSubscription = subscribeToDrawings((newLine) => {
-      if (!lines.some((line) => line.id === newLine.id)) {
-        setLines((prevLines) => [...prevLines, newLine]);
-      }
+      setLines((prevLines) => {
+        if (!prevLines.some((line) => line.id === newLine.id)) {
+          return [...prevLines, newLine];
+        }
+        return prevLines;
+      });
     });
 
     deletionSubscription = subscribeToDrawingDeletions((deletedLineIds) => {
