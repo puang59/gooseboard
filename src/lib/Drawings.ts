@@ -1,18 +1,27 @@
 // lib/Drawings.ts
 import { createClient } from "~/utils/supabase/client";
+import { getSession } from "next-auth/react";
 
 interface LineData {
   id?: string;
   points: number[];
   color: string;
   brushSize: number;
+  userId?: string;
+}
+
+interface StoreLineResponse {
+  id: string;
+  points: number[];
+  color: string;
+  brushSize: number;
+  userId: string;
 }
 
 export async function fetchLines() {
   try {
     const supabase = createClient();
 
-    // Check if we have a valid client
     if (!supabase) {
       console.error("Could not create Supabase client");
       return { success: false, error: "No Supabase client" };
@@ -20,9 +29,8 @@ export async function fetchLines() {
 
     const { data, error } = await supabase
       .from("drawings")
-      .select("id, points, color, brushSize");
+      .select("id, points, color, brushSize, userId");
 
-    // Log the response for debugging
     console.log("Supabase fetch response:", { data, error });
 
     if (error) {
@@ -30,7 +38,6 @@ export async function fetchLines() {
       return { success: false, error: error.message || "Unknown error" };
     }
 
-    // Check if data exists and has the expected format
     if (!data) {
       console.warn("No data returned from Supabase");
       return { success: true, data: [] };
@@ -47,27 +54,31 @@ export async function storeLines(newLine: LineData) {
   try {
     const supabase = createClient();
 
-    // Check if we have a valid client
+    const session = await getSession();
+    const userId = session?.user?.id ?? null;
+
     if (!supabase) {
       console.error("Could not create Supabase client");
       return { success: false, error: "No Supabase client" };
     }
 
-    // Validate the data before inserting
     if (!newLine.points || !Array.isArray(newLine.points)) {
       console.error("Invalid line data:", newLine);
       return { success: false, error: "Invalid line data" };
     }
 
-    const { data, error } = await supabase.from("drawings").insert([
-      {
-        points: newLine.points,
-        color: newLine.color || "black",
-        brushSize: newLine.brushSize || 3,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("drawings")
+      .insert([
+        {
+          points: newLine.points,
+          color: newLine.color || "black",
+          brushSize: newLine.brushSize || 3,
+          userId: userId,
+        },
+      ])
+      .select();
 
-    // Log the response for debugging
     console.log("Supabase insert response:", { data, error });
 
     if (error) {
@@ -75,7 +86,9 @@ export async function storeLines(newLine: LineData) {
       return { success: false, error };
     }
 
-    return { success: true, data };
+    const typedData = data as StoreLineResponse[];
+
+    return { success: true, data: typedData };
   } catch (error) {
     console.error("Exception in storeLines:", error);
     return { success: false, error: "Internal error in storeLines" };
@@ -86,15 +99,24 @@ export async function clearLines() {
   try {
     const supabase = createClient();
 
-    // Check if we have a valid client
+    const session = await getSession();
+    const userId = session?.user?.id;
+
     if (!supabase) {
       console.error("Could not create Supabase client");
       return { success: false, error: "No Supabase client" };
     }
 
-    const { error } = await supabase.from("drawings").delete().neq("id", 0);
+    if (!userId) {
+      console.warn("No user ID found, cannot clear lines");
+      return { success: false, error: "User not authenticated" };
+    }
 
-    // Log the response for debugging
+    const { error } = await supabase
+      .from("drawings")
+      .delete()
+      .eq("userId", userId);
+
     console.log("Supabase delete response:", { error });
 
     if (error) {
