@@ -1,4 +1,4 @@
-![Gooseboard](public/gooseBoard.png)
+<img src="public/gooseBoard.png" width="300">
 
 # gooseBoard
 
@@ -28,29 +28,15 @@ To run Gooseboard locally, follow these steps:
    ```
 
 3. **Install Dependencies**:
-   If you are using Bun:
 
    ```bash
    bun install
    ```
 
-   If you are using npm:
-
-   ```bash
-   npm install
-   ```
-
 4. **Start the Application**:
-   If you are using Bun:
 
    ```bash
    bun start
-   ```
-
-   If you are using npm:
-
-   ```bash
-   npm start
    ```
 
 5. **Open Your Browser**: Navigate to `http://localhost:3000` to view the application.
