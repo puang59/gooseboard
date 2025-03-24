@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { Stage, Layer, Line } from "react-konva";
-import { fetchLines, storeLines, clearLines } from "~/lib/Drawings";
+import {
+  fetchLines,
+  storeLines,
+  clearLines,
+  subscribeToDrawings,
+  subscribeToDrawingDeletions,
+} from "~/lib/Drawings";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { useSession } from "next-auth/react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 interface LineData {
   id?: string;
@@ -54,6 +61,30 @@ export default function CanvasComponent() {
     };
 
     void loadLines();
+
+    let lineSubscription: RealtimeChannel | null = null;
+    let deletionSubscription: RealtimeChannel | null = null;
+
+    lineSubscription = subscribeToDrawings((newLine) => {
+      if (!lines.some((line) => line.id === newLine.id)) {
+        setLines((prevLines) => [...prevLines, newLine]);
+      }
+    });
+
+    deletionSubscription = subscribeToDrawingDeletions((deletedLineIds) => {
+      setLines((prevLines) =>
+        prevLines.filter((line) => !deletedLineIds.includes(line.id ?? "")),
+      );
+    });
+
+    return () => {
+      if (lineSubscription) {
+        void lineSubscription.unsubscribe();
+      }
+      if (deletionSubscription) {
+        void deletionSubscription.unsubscribe();
+      }
+    };
   }, [session]);
 
   const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
@@ -158,8 +189,8 @@ export default function CanvasComponent() {
 
       <div className="overflow-hidden rounded-lg bg-white shadow-lg">
         <Stage
-          width={800}
-          height={500}
+          width={900}
+          height={600}
           onMouseDown={handleMouseDown}
           onMousemove={handleMouseMove}
           onMouseup={handleMouseUp}
@@ -189,7 +220,7 @@ export default function CanvasComponent() {
           className="rounded-lg bg-red-400 px-6 py-2 text-white transition-colors hover:bg-red-500"
           disabled={!session}
         >
-          clear my drawings
+          clear
         </button>
 
         <div className="w-48">

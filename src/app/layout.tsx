@@ -5,8 +5,8 @@ import { type Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
-  title: "gooseboard",
-  description: "A simple kanban board",
+  title: "gooseBoard",
+  description: "a real-time canvas for drawing",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -15,7 +15,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <SessionProvider>
-      <html lang="en" className={`${GeistSans.variable} bg-black text-white`}>
+      <html
+        lang="en"
+        className={`${GeistSans.variable} bg-gray-200 text-black`}
+      >
         <body>{children}</body>
       </html>
     </SessionProvider>

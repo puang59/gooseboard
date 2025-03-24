@@ -1,4 +1,3 @@
-// lib/Drawings.ts
 import { createClient } from "~/utils/supabase/client";
 import { getSession } from "next-auth/react";
 
@@ -129,4 +128,64 @@ export async function clearLines() {
     console.error("Exception in clearLines:", error);
     return { success: false, error: "Internal error in clearLines" };
   }
+}
+
+export function subscribeToDrawings(callback: (line: LineData) => void) {
+  const supabase = createClient();
+
+  if (!supabase) {
+    console.error("Could not create Supabase client for subscription");
+    return null;
+  }
+
+  const subscription = supabase
+    .channel("drawings-changes")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "drawings",
+      },
+      (payload) => {
+        console.log("New line received:", payload);
+        if (payload.new) {
+          callback(payload.new as LineData);
+        }
+      },
+    )
+    .subscribe();
+
+  return subscription;
+}
+
+export function subscribeToDrawingDeletions(
+  callback: (deletedLineIds: string[]) => void,
+) {
+  const supabase = createClient();
+
+  if (!supabase) {
+    console.error("Could not create Supabase client for deletion subscription");
+    return null;
+  }
+
+  const subscription = supabase
+    .channel("drawings-deletions")
+    .on(
+      "postgres_changes",
+      {
+        event: "DELETE",
+        schema: "public",
+        table: "drawings",
+      },
+      (payload) => {
+        console.log("Deletion detected:", payload);
+        if (payload.old?.id) {
+          callback([payload.old.id as string]);
+        }
+      },
+    )
+    .subscribe();
+
+  return subscription;
 }
