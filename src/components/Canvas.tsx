@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { Stage, Layer, Line } from "react-konva";
 import {
@@ -25,10 +26,10 @@ export default function CanvasComponent() {
   const [color, setColor] = useState<string>("#FF7B76");
   const [brushSize, setBrushSize] = useState<number>(3);
   const [userLines, setUserLines] = useState<string[]>([]);
-  console.log(userLines);
   const { data: session } = useSession();
 
   const colorPalette: string[] = ["#FF7B76", "#4A9F5A", "#CB7BFF", "#5794D7"];
+  console.log(userLines);
 
   useEffect(() => {
     const loadLines = async () => {
